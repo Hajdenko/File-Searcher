@@ -2,4 +2,4 @@
 I was just bored and I hated the default window explorer search so I created this lol
 
 ## Install
-Go to [Release](https://github.com/Hajdenko/File-Searcher/releases/tag/Release) and download the executable or you can build it yourself.
+Go to [Release](https://github.com/Hajdenko/File-Searcher/releases/tag/Release) and download the zip file, extract it and then **create a shortcut** for the executable or you can build it yourself.
