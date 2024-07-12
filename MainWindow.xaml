@@ -1,0 +1,166 @@
+<Window WindowStyle="None" WindowStartupLocation="CenterScreen" AllowsTransparency="True" Background="Transparent" ResizeMode="CanMinimize"
+        x:Class="File_Searcher.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="File Searcher" Height="500" Width="800">
+    <Window.Resources>
+        <Style x:Key="HoverButtonStyle" TargetType="Button">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" CornerRadius="5"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" TargetName="border" Value="#202020"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="LightGray"/>
+        </Style>
+        
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        
+        <Style TargetType="TextBox" x:Key="RoundedTextBoxStyle">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="5">
+                            <ScrollViewer x:Name="PART_ContentHost"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="LightGray"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="LightGray"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="LightGray"/>
+        </Style>
+
+        <Style TargetType="ListBoxItem" x:Key="ListBoxItemStyle">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="border" Background="Transparent" BorderBrush="Transparent" BorderThickness="1" Padding="10,5">
+                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#333333"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#333333"/>
+                                <Setter TargetName="border" Property="CornerRadius" Value="5"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#333333"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#393939"/>
+                                <Setter TargetName="border" Property="CornerRadius" Value="5"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="Gray"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="LightGray"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="4,1"/>
+        </Style>
+    </Window.Resources>
+    <Border CornerRadius="15" BorderThickness="5">
+        <Border.BorderBrush>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#121212" Offset="0.0"/>
+                <GradientStop Color="#151212" Offset="0.5"/>
+                <GradientStop Color="#121212" Offset="1.0"/>
+            </LinearGradientBrush>
+        </Border.BorderBrush>
+
+        <Grid MouseLeftButtonDown="drag_window_event">
+            <Border Name="TitleBar" CornerRadius="15, 15, 0, 0" BorderThickness="5" BorderBrush="#151515" Margin="-5,-5,-5,460">
+                <Rectangle x:Name="TitleBarFiller" Fill="#151515" Margin="0,0,0,0"/>
+            </Border>
+
+            <Canvas Margin="0,-3,0,0">
+                <Label Content="File Search - by hajdenkoo" Background="Transparent" Foreground="White" FontFamily="Consolas" FontSize="14" FontWeight="Light" Padding="8,8,0,0"/>
+                <Button Name="CloseButton" Content="X" Click="close_button" 
+                        Canvas.Top="1" Canvas.Right="0" Width="30" Height="30"
+                        BorderBrush="Transparent" Background="Transparent" Foreground="LightGray"
+                        Style="{StaticResource HoverButtonStyle}"/>
+                <Button Name="MinimizeButton" Content="-" Click="minimize_button" 
+                        Canvas.Top="1" Canvas.Right="32" Width="30" Height="30"
+                        BorderBrush="Transparent" Background="Transparent" Foreground="LightGray"
+                        Style="{StaticResource HoverButtonStyle}"/>
+            </Canvas>
+
+            <StackPanel Margin="20,50,20,20" VerticalAlignment="Top">
+                <Grid Margin="0,10,0,0">
+                    <TextBox Name="SearchInput" Padding="2,5,0,5" Background="Transparent" Foreground="LightGray" VerticalContentAlignment="Center" FontSize="14" FontFamily="Cascadia Code" Style="{StaticResource RoundedTextBoxStyle}"/>
+                    <TextBlock Text="Enter search term" Foreground="Gray" VerticalAlignment="Center" Margin="5,5,0,5" FontSize="14" FontFamily="Cascadia Code"
+                               IsHitTestVisible="False" Visibility="{Binding Text.isEmpty, ElementName=SearchInput, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                </Grid>
+                <Grid Margin="0,10,0,10">
+                    <TextBox Name="LocationInput" Padding="2,5,0,5" Background="Transparent" Foreground="LightGray" VerticalContentAlignment="Center" FontSize="14" FontFamily="Cascadia Code" Style="{StaticResource RoundedTextBoxStyle}"/>
+                    <TextBlock Text="Enter search location" Foreground="Gray" VerticalAlignment="Center" Margin="5,5,0,5" FontSize="14" FontFamily="Cascadia Code"
+                               IsHitTestVisible="False" Visibility="{Binding Text.isEmpty, ElementName=LocationInput, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                </Grid>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button Name="SearchButton" Content="Search" Click="search_button" 
+                            Margin="0,10,0,0" Width="100" Height="30" FontSize="14" FontFamily="Cascadia Code"
+                            Style="{StaticResource HoverButtonStyle}"/>
+                    <Button Name="AdminButton" Content="Enable Administrator" Click="enable_admin"
+                            Margin="10,10,0,0" Width="180" Height="30" FontSize="14" FontFamily="Cascadia Code"
+                            Style="{StaticResource HoverButtonStyle}"/>
+                </StackPanel>
+                <Grid Margin="0,20,0,0">
+                    <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="5">
+                        <StackPanel>
+                            <Grid Margin="5,5,5,0">
+                                <TextBox Name="ConsoleSearchInput" Padding="2,3,0,5" FontSize="14" FontFamily="Cascadia Code" Background="Transparent" Foreground="LightGray" VerticalContentAlignment="Center" Height="25" Style="{StaticResource RoundedTextBoxStyle}"/>
+                                <TextBlock Text="Search..." Foreground="Gray" VerticalAlignment="Center" Margin="5,5,0,5" FontSize="14" FontFamily="Cascadia Code"
+                                           IsHitTestVisible="False" Visibility="{Binding Text.IsEmpty, ElementName=ConsoleSearchInput, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                            </Grid>
+
+                            <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="5" Margin="5,5,5,5">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <ListBox Name="ConsoleOutput" Background="Transparent" BorderBrush="Transparent" Foreground="LightGray" FontSize="14" FontFamily="Cascadia Code" Margin="5" 
+                                             ItemContainerStyle="{StaticResource ListBoxItemStyle}" MaxHeight="200">
+                                        <!-- console output here -->
+                                    </ListBox>
+                                </ScrollViewer>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </StackPanel>
+
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#121212" Offset="0.0"/>
+                    <GradientStop Color="#151212" Offset="0.5"/>
+                    <GradientStop Color="#111212" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Grid.Background>
+        </Grid>
+    </Border>
+</Window>
