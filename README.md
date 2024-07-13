@@ -30,4 +30,4 @@ Open `search_json.json` and edit it in a text editor.
   }
 }
 ```
-*/<username> is automatically generated.*
+*\<username> is automatically generated.*
