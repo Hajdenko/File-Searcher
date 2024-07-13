@@ -5,7 +5,7 @@ I was just bored and I hated the default window explorer search so I created thi
 Go to [Release](https://github.com/Hajdenko/File-Searcher/releases/tag/Release) and download the zip file, extract it and then **create a shortcut** for the executable or you can build it yourself.
 
 # Shortcuts
-## What are shotcuts?
+## What are shortcuts?
 *Shortcuts are variables which you can use in the search location.*
 
 **Example of shortcuts**:
