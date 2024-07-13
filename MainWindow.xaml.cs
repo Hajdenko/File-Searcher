@@ -23,6 +23,7 @@ namespace File_Searcher
         private String ifcantFix = "\n\nIf you don't know how to fix this, reach out to me on discord. hajdenkoo";
         private SearchJSON json;
         private static readonly string JsonFilePath = "search_json.json";
+        private bool logErrors;
 
         public MainWindow()
         {
@@ -38,6 +39,9 @@ namespace File_Searcher
             ConsoleOutput.Items.Add("For more (sometimes) advanced searching enable the administrator mode.");
 
             ConsoleSearchInput.TextChanged += searchInput_changed;
+            LogErrorsCheckBox.Checked += (s, e) => logErrors = true;
+            LogErrorsCheckBox.Unchecked += (s, e) => logErrors = false;
+            logErrors = LogErrorsCheckBox.IsChecked == true;
         }
 
         private void close_button(object sender, RoutedEventArgs e)
@@ -68,6 +72,11 @@ namespace File_Searcher
                 searchLocation = json.Shortcuts[searchLocation];
             }
 
+            if (searchLocation.Length == 2 && searchLocation[1] == ':')
+            {
+                searchLocation += "/";
+            }
+
             if (string.IsNullOrWhiteSpace(searchTerm) || string.IsNullOrWhiteSpace(searchLocation))
             {
                 MessageBox.Show("Enter Search Term and Search Location.");
@@ -76,11 +85,12 @@ namespace File_Searcher
 
             if (!Directory.Exists(searchLocation))
             {
-                MessageBox.Show("Specified Search Location doesnt exist.");
+                MessageBox.Show("Specified Search Location doesn't exist.");
                 return;
             }
 
             ConsoleOutput.Items.Clear();
+            ConsoleOutput.Items.Add("Searching...");
             allFoundFiles.Clear();
 
             cancellationTokenSource?.Cancel();
@@ -94,6 +104,15 @@ namespace File_Searcher
                 json.SearchTerm = searchTerm;
                 json.SearchLocation = LocationInput.Text;
                 save_json(json);
+
+                if (allFoundFiles.Count == 0)
+                {
+                    Dispatcher.Invoke(() => ConsoleOutput.Items.Add("Found nothing"));
+                }
+                else
+                {
+                    Dispatcher.Invoke(() => ConsoleOutput.Items.Add("Search ended"));
+                }
             }
             catch (OperationCanceledException)
             {
@@ -107,13 +126,35 @@ namespace File_Searcher
 
         private void search(string searchTerm, string searchLocation, CancellationToken token)
         {
-            try
+            Queue<string> directories = new Queue<string>();
+            directories.Enqueue(searchLocation);
+
+            while (directories.Count > 0)
             {
-                foreach (string directory in Directory.GetDirectories(searchLocation, "*", SearchOption.AllDirectories))
+                string currentDirectory = directories.Dequeue();
+                try
                 {
-                    try
+                    foreach (string subdirectory in Directory.GetDirectories(currentDirectory))
                     {
-                        foreach (string file in Directory.GetFiles(directory))
+                        try
+                        {
+                            directories.Enqueue(subdirectory);
+                        }
+                        catch (UnauthorizedAccessException)
+                        {
+                            if (logErrors)
+                                Dispatcher.Invoke(() => ConsoleOutput.Items.Add($"Unauthorized access to subdirectory {subdirectory}, skipping..."));
+                        }
+                        catch (Exception ex)
+                        {
+                            if (logErrors)
+                                Dispatcher.Invoke(() => ConsoleOutput.Items.Add($"An error occurred while accessing subdirectory {subdirectory}: {ex.Message}, skipping..."));
+                        }
+                    }
+
+                    foreach (string file in Directory.GetFiles(currentDirectory))
+                    {
+                        try
                         {
                             token.ThrowIfCancellationRequested();
                             if (Path.GetFileName(file).Contains(searchTerm))
@@ -122,16 +163,28 @@ namespace File_Searcher
                                 allFoundFiles.Add(file);
                             }
                         }
-                    }
-                    catch (UnauthorizedAccessException)
-                    {
-                        Dispatcher.Invoke(() => ConsoleOutput.Items.Add($"Something in {directory} can't be accessed, skipping..." + ifcantFix));
+                        catch (UnauthorizedAccessException)
+                        {
+                            if (logErrors)
+                                Dispatcher.Invoke(() => ConsoleOutput.Items.Add($"Unauthorized access to file {file}, skipping..."));
+                        }
+                        catch (Exception ex)
+                        {
+                            if (logErrors)
+                                Dispatcher.Invoke(() => ConsoleOutput.Items.Add($"An error occurred while accessing file {file}: {ex.Message}, skipping..."));
+                        }
                     }
                 }
-            }
-            catch (UnauthorizedAccessException)
-            {
-                Dispatcher.Invoke(() => ConsoleOutput.Items.Add($"Something in {searchLocation} can't be accessed, skipping..." + ifcantFix));
+                catch (UnauthorizedAccessException)
+                {
+                    if (logErrors)
+                        Dispatcher.Invoke(() => ConsoleOutput.Items.Add($"Unauthorized access to directory {currentDirectory}, skipping..."));
+                }
+                catch (Exception ex)
+                {
+                    if (logErrors)
+                        Dispatcher.Invoke(() => ConsoleOutput.Items.Add($"An error occurred while accessing directory {currentDirectory}: {ex.Message}, skipping..."));
+                }
             }
         }
 
@@ -151,13 +204,13 @@ namespace File_Searcher
 
         private void left_path(object sender, MouseButtonEventArgs e)
         {
-            TextBlock textBlock = sender as TextBlock; // dont know why is an error here but it works heh
+            TextBlock textBlock = sender as TextBlock;
             if (textBlock != null)
             {
-                string filePath = textBlock.Tag as string; // same thing
+                string filePath = textBlock.Tag as string;
                 if (filePath != null)
                 {
-                    string directory = Path.GetDirectoryName(filePath); // dont care
+                    string directory = Path.GetDirectoryName(filePath);
                     string args = $"\"{directory}\"";
                     ProcessStartInfo pfi = new ProcessStartInfo("explorer.exe", args);
                     Process.Start(pfi);
@@ -178,6 +231,7 @@ namespace File_Searcher
                 }
             }
         }
+
         private void searchInput_changed(object sender, TextChangedEventArgs e)
         {
             string searchText = ConsoleSearchInput.Text.ToLower();
@@ -197,7 +251,7 @@ namespace File_Searcher
 
         private void enable_admin(object sender, RoutedEventArgs e)
         {
-            var exeName = Process.GetCurrentProcess().MainModule.FileName; // telling me to use Environment.ProcessPath, but then its null -_-
+            var exeName = Process.GetCurrentProcess().MainModule.FileName;
             var startInfo = new ProcessStartInfo(exeName)
             {
                 Verb = "runas"
@@ -207,7 +261,6 @@ namespace File_Searcher
             Application.Current.Shutdown();
         }
 
-        // its 00:24AM i cant
         private SearchJSON load_json()
         {
             if (File.Exists(JsonFilePath))
