@@ -86,6 +86,36 @@
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Padding" Value="4,1"/>
         </Style>
+
+        <Style TargetType="CheckBox" x:Key="LogErrorsCheckBoxStyle">
+            <Setter Property="Foreground" Value="LightGray"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <StackPanel Orientation="Horizontal">
+                            <Border Background="Transparent" BorderBrush="#555555" BorderThickness="2" Width="30" Height="30" VerticalAlignment="Center" CornerRadius="7.5">
+                                <Path x:Name="CheckMark" Data="M 0 5 L 5 10 L 15 0" Stroke="Transparent" StrokeThickness="2" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            </Border>
+                            <ContentPresenter Margin="5,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CheckMark" Property="Stroke" Value="LightGray"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="Gray"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
     <Border CornerRadius="15" BorderThickness="5">
         <Border.BorderBrush>
@@ -117,12 +147,12 @@
                 <Grid Margin="0,10,0,0">
                     <TextBox Name="SearchInput" Padding="2,5,0,5" Background="Transparent" Foreground="LightGray" VerticalContentAlignment="Center" FontSize="14" FontFamily="Cascadia Code" Style="{StaticResource RoundedTextBoxStyle}"/>
                     <TextBlock Text="Enter search term" Foreground="Gray" VerticalAlignment="Center" Margin="5,5,0,5" FontSize="14" FontFamily="Cascadia Code"
-                               IsHitTestVisible="False" Visibility="{Binding Text.isEmpty, ElementName=SearchInput, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                               IsHitTestVisible="False" Visibility="{Binding Text.IsEmpty, ElementName=SearchInput, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                 </Grid>
                 <Grid Margin="0,10,0,10">
                     <TextBox Name="LocationInput" Padding="2,5,0,5" Background="Transparent" Foreground="LightGray" VerticalContentAlignment="Center" FontSize="14" FontFamily="Cascadia Code" Style="{StaticResource RoundedTextBoxStyle}"/>
                     <TextBlock Text="Enter search location" Foreground="Gray" VerticalAlignment="Center" Margin="5,5,0,5" FontSize="14" FontFamily="Cascadia Code"
-                               IsHitTestVisible="False" Visibility="{Binding Text.isEmpty, ElementName=LocationInput, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                               IsHitTestVisible="False" Visibility="{Binding Text.IsEmpty, ElementName=LocationInput, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                 </Grid>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                     <Button Name="SearchButton" Content="Search" Click="search_button" 
@@ -131,6 +161,7 @@
                     <Button Name="AdminButton" Content="Enable Administrator" Click="enable_admin"
                             Margin="10,10,0,0" Width="180" Height="30" FontSize="14" FontFamily="Cascadia Code"
                             Style="{StaticResource HoverButtonStyle}"/>
+                    <CheckBox Name="LogErrorsCheckBox" Content="Log Errors" IsChecked="True" Margin="10,10,0,0" VerticalAlignment="Center" Foreground="White" FontSize="14" FontFamily="Cascadia Code" Style="{StaticResource LogErrorsCheckBoxStyle}"/>
                 </StackPanel>
                 <Grid Margin="0,20,0,0">
                     <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="5">
