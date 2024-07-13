@@ -19,3 +19,15 @@ You can use:
 ## How to edit and add shortcuts?
 Open `search_json.json` and edit it in a text editor.
   The file should create after launching for the first time in the same folder.
+
+### Default search_json.json
+```
+{
+  "SearchTerm": "",
+  "SearchLocation": "",
+  "Shortcuts": {
+    "$Desktop": "C:\\Users\\<username>\\Desktop"
+  }
+}
+```
+*<username> is automatically generated.*
